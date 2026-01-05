@@ -59,7 +59,7 @@ for i := 1; i <= jobCount; i++ {
 // 	return
 // }
 jobChan := make(chan job.Job)
-resultChan := make(chan job.Result)
+resultChan := make(chan job.Result, jobCount)
 
 for i := 1; i <= workerCount; i++ {
 	go worker.StartWorker(i, jobChan, resultChan)
@@ -76,14 +76,19 @@ for _, j := range jobs {
 }
 
 	close(jobChan)
+	var totalCost float64
+
 	for i := 0; i < len(jobs); i++ {
 	result := <-resultChan
-
+	totalCost += result.CostRupees
 	fmt.Println("\n=== JOB RESULT ===")
 	fmt.Println("Job ID:", result.JobID)
 	fmt.Println("Output:", result.Output)
 	fmt.Println("Execution Time (ms):", result.ExecTimeMs)
 	fmt.Println("Memory Used (bytes):", result.MemoryBytes)
+	fmt.Println("Cost (₹):", result.CostRupees)
+	
+	fmt.Printf("\nTotal Cost: ₹%.2f\n", totalCost)
 }
 }
 
