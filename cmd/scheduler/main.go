@@ -41,6 +41,10 @@ func main(){
 newJob := job.NewJob(jobType, start, end, priority)
 jobChan := make(chan job.Job)
 resultChan := make(chan job.Result)
+workerCount := 5
+for i := 1; i <= workerCount; i++ {
+	go worker.StartWorker(i, jobChan, resultChan)
+}
 
 	fmt.Println("Job received by Scheduler:")
 	fmt.Printf("ID: %s\n", newJob.ID)
@@ -48,5 +52,15 @@ resultChan := make(chan job.Result)
 	fmt.Printf("Range: %d to %d\n", newJob.Start, newJob.End)
 	fmt.Printf("Priority: %d\n", newJob.Priority)
 
-	
+	jobChan <- newJob
+	close(jobChan)
+	result := <-resultChan
+	fmt.Println("\n=== JOB RESULT ===")
+	fmt.Println("Job ID:", result.JobID)
+	fmt.Println("Output:", result.Output)
+	fmt.Println("Execution Time (ms):", result.ExecTimeMs)
+	fmt.Println("Memory Used (bytes):", result.MemoryBytes)
 }
+
+
+	
