@@ -5,5 +5,6 @@ type Result struct {
 	Output       any
 	ExecTimeMs   int64
 	MemoryBytes  uint64
+	CostRupees   float64
 	Error        error
 }

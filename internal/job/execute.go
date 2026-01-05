@@ -7,7 +7,8 @@ import (
 )
 
 func Execute(j Job) (Result, error) {
-
+	const costPerKB = 0.5
+	
 	startTime := time.Now()
 
 	var memStart, memEnd runtime.MemStats
@@ -34,6 +35,8 @@ func Execute(j Job) (Result, error) {
 
 	res.ExecTimeMs = time.Since(startTime).Milliseconds()
 	res.MemoryBytes = memEnd.Alloc - memStart.Alloc
+	memoryKB := float64(res.MemoryBytes) / 1024.0
+	res.CostRupees = memoryKB * costPerKB
 
 	return res, nil
 }
