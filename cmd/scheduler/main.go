@@ -5,6 +5,7 @@ import (
 	"os"
 	"strconv"
 	"github.com/madhavbhayani/go-distributed-task-engine/internal/job"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/worker"
 )
 
 func main(){
@@ -38,6 +39,8 @@ func main(){
 	}
 
 newJob := job.NewJob(jobType, start, end, priority)
+jobChan := make(chan job.Job)
+resultChan := make(chan job.Result)
 
 	fmt.Println("Job received by Scheduler:")
 	fmt.Printf("ID: %s\n", newJob.ID)
