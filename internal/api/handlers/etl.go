@@ -120,7 +120,7 @@ func (h *ETLHandler) CleanData(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if params.NullHandling == "" {
-		params.NullHandling = "skip"
+		params.NullHandling = "fill_default"
 	}
 
 	job := buildJob(req, models.JobTypeETLClean, params)

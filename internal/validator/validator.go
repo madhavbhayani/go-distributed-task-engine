@@ -73,10 +73,10 @@ func ValidateETLCleanParams(p *models.ETLCleanParams) error {
 	if p.NullHandling != "" {
 		allowed := map[string]bool{
 			"drop": true, "fill_default": true, "fill_mean": true,
-			"fill_median": true, "skip": true,
+			"fill_median": true, "fill_custom": true, "skip": true,
 		}
 		if !allowed[p.NullHandling] {
-			ve.Add("null_handling", "must be one of: drop, fill_default, fill_mean, fill_median, skip")
+			ve.Add("null_handling", "must be one of: drop, fill_default, fill_mean, fill_median, fill_custom, skip")
 		}
 	}
 

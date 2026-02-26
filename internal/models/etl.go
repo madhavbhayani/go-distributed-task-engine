@@ -65,7 +65,10 @@ type ETLCleanParams struct {
 	Rules []CleaningRule `json:"rules" validate:"required,min=1"`
 
 	// How to handle NULLs globally (can be overridden per rule)
-	NullHandling string `json:"null_handling" validate:"oneof=drop fill_default fill_mean fill_median skip"`
+	NullHandling string `json:"null_handling" validate:"oneof=drop fill_default fill_mean fill_median fill_custom skip"`
+
+	// Per-column custom fill values (only used when NullHandling == "fill_custom")
+	CustomFillValues map[string]string `json:"custom_fill_values,omitempty"`
 
 	// If true, create a new dataset; if false, modify in-place
 	CreateCopy bool   `json:"create_copy"`

@@ -195,6 +195,7 @@ func (e *Engine) executeETLClean(ctx context.Context, job *models.Job) (any, err
 	}
 
 	// ── Pre-processing: compute per-column frequency maps for categorical outlier fixing ──
+	// Also pre-compute fill stats for fix_mismatched_types columns (mode values)
 	catFreq := make(map[string]map[string]int)
 	for _, rule := range params.Rules {
 		if rule.Operation == "fix_categorical_outliers" || rule.Operation == "fix_mismatched_types" {
@@ -208,6 +209,49 @@ func (e *Engine) executeETLClean(ctx context.Context, job *models.Job) (any, err
 					}
 				}
 				catFreq[col] = freq
+			}
+			// Ensure fillStats exists for this column too (for mode fallback in fix_mismatched_types)
+			if rule.Operation == "fix_mismatched_types" {
+				if _, ok := fillStats[col]; !ok {
+					cfs := &colFillStats{}
+					var numVals []float64
+					freq := make(map[string]int)
+					for _, rec := range workDS.Records {
+						v := rec[col]
+						if isNullValue(v) {
+							continue
+						}
+						freq[v]++
+						if f, err := parseFloat(v); err == nil {
+							numVals = append(numVals, f)
+						}
+					}
+					if len(numVals) > 0 {
+						sum := 0.0
+						for _, f := range numVals {
+							sum += f
+						}
+						cfs.mean = sum / float64(len(numVals))
+						sorted := make([]float64, len(numVals))
+						copy(sorted, numVals)
+						sort.Float64s(sorted)
+						n := len(sorted)
+						if n%2 == 0 {
+							cfs.median = (sorted[n/2-1] + sorted[n/2]) / 2.0
+						} else {
+							cfs.median = sorted[n/2]
+						}
+					}
+					modeVal, modeCount := "", 0
+					for v, c := range freq {
+						if c > modeCount {
+							modeCount = c
+							modeVal = v
+						}
+					}
+					cfs.mode = modeVal
+					fillStats[col] = cfs
+				}
 			}
 		}
 	}
@@ -328,6 +372,10 @@ func (e *Engine) executeETLClean(ctx context.Context, job *models.Job) (any, err
 						}
 
 					case "fill_null":
+						// When global null_handling is "skip", never fill nulls
+						if params.NullHandling == "skip" {
+							continue
+						}
 						if isNullValue(val) {
 							fillVal := rule.Params["fill_value"]
 							strategy := rule.Params["strategy"]
@@ -366,11 +414,29 @@ func (e *Engine) executeETLClean(ctx context.Context, job *models.Job) (any, err
 										fillVal = "0"
 									}
 								case "fill_default":
-									fillVal = "0"
+									// Use mode (most frequent) as the default fill
+									if cfs, ok := fillStats[col]; ok && cfs.mode != "" {
+										fillVal = cfs.mode
+									} else {
+										fillVal = "0"
+									}
+								case "fill_custom":
+									if cv, ok := params.CustomFillValues[col]; ok && cv != "" {
+										fillVal = cv
+									} else if cfs, ok := fillStats[col]; ok && cfs.mode != "" {
+										fillVal = cfs.mode
+									} else {
+										fillVal = "0"
+									}
 								case "skip":
 									continue
 								default:
-									fillVal = "0"
+									// Default: use mode
+									if cfs, ok := fillStats[col]; ok && cfs.mode != "" {
+										fillVal = cfs.mode
+									} else {
+										fillVal = "0"
+									}
 								}
 							}
 							trackChange("fill_null", val, fillVal)
@@ -418,7 +484,6 @@ func (e *Engine) executeETLClean(ctx context.Context, job *models.Job) (any, err
 						if isNullValue(trimVal) {
 							continue
 						}
-						mismatch := false
 						nv := trimVal
 						switch inferredType {
 						case "integer":
@@ -427,7 +492,12 @@ func (e *Engine) executeETLClean(ctx context.Context, job *models.Job) (any, err
 								if cleaned != "" {
 									nv = cleaned
 								} else {
-									mismatch = true
+									// Fill with mode (most frequent value) instead of emptying
+									if cfs, ok := fillStats[col]; ok && cfs.mode != "" {
+										nv = cfs.mode
+									} else {
+										nv = "0"
+									}
 								}
 							}
 						case "float":
@@ -436,7 +506,12 @@ func (e *Engine) executeETLClean(ctx context.Context, job *models.Job) (any, err
 								if cleaned != "" {
 									nv = cleaned
 								} else {
-									mismatch = true
+									// Fill with mode (most frequent value) instead of emptying
+									if cfs, ok := fillStats[col]; ok && cfs.mode != "" {
+										nv = cfs.mode
+									} else {
+										nv = "0"
+									}
 								}
 							}
 						case "boolean":
@@ -451,15 +526,50 @@ func (e *Engine) executeETLClean(ctx context.Context, job *models.Job) (any, err
 							if mapped, ok := boolMap[low]; ok {
 								nv = mapped
 							} else {
-								mismatch = true
+								// Fill with mode instead of emptying
+								if cfs, ok := fillStats[col]; ok && cfs.mode != "" {
+									nv = cfs.mode
+								} else {
+									nv = "false"
+								}
 							}
 						case "email":
 							if !strings.Contains(trimVal, "@") {
-								mismatch = true
+								// Fill with mode instead of emptying
+								if cfs, ok := fillStats[col]; ok && cfs.mode != "" {
+									nv = cfs.mode
+								}
 							}
-						}
-						if mismatch {
-							nv = "" // will be filled by fill_null if present
+						case "categorical":
+							// For categorical: normalize text variants
+							// "very high" / "veryhigh" / "very_high" → "very_high"
+							nv = normalizeTextToUnderscore(trimVal)
+						default:
+							// For string/freetext types: normalize spacing variants to underscore
+							normalized := normalizeTextToUnderscore(trimVal)
+							// Check if this normalized form matches any frequent value in the column
+							if freq, ok := catFreq[col]; ok {
+								normLow := strings.ToLower(normalized)
+								if _, exists := freq[normLow]; exists {
+									nv = normalized
+								} else {
+									// Find the best matching canonical form
+									bestVal, bestCnt := "", 0
+									for candidate, cnt := range freq {
+										if normalizeTextToUnderscore(candidate) == normLow && cnt > bestCnt {
+											bestVal = candidate
+											bestCnt = cnt
+										}
+									}
+									if bestVal != "" {
+										nv = normalizeTextToUnderscore(bestVal)
+									} else {
+										nv = normalized
+									}
+								}
+							} else {
+								nv = normalized
+							}
 						}
 						trackChange("fix_mismatched_types", val, nv)
 						rec[col] = nv
@@ -715,4 +825,26 @@ func levenshteinClean(a, b string) int {
 		prev = curr
 	}
 	return prev[lb]
+}
+
+// normalizeTextToUnderscore normalizes text variants to a consistent underscore form.
+// "very high" / "veryhigh" / "very_high" / "very-high" / "VeryHigh" → "very_high"
+// This handles camelCase, spaces, hyphens, underscores, and concatenated words.
+var reNormSeparators = regexp.MustCompile(`[\s\-_]+`)
+var reCamelCase = regexp.MustCompile(`([a-z])([A-Z])`)
+
+func normalizeTextToUnderscore(s string) string {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return s
+	}
+	// Split camelCase: "veryHigh" → "very High"
+	s = reCamelCase.ReplaceAllString(s, "${1}_${2}")
+	// Replace spaces, hyphens, multiple underscores with single underscore
+	s = reNormSeparators.ReplaceAllString(s, "_")
+	// Lowercase
+	s = strings.ToLower(s)
+	// Remove leading/trailing underscores
+	s = strings.Trim(s, "_")
+	return s
 }
