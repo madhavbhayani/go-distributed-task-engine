@@ -140,8 +140,8 @@ func main() {
 
 	// ── Self-Ping Keepalive (Render anti-sleep) ───
 	go func() {
-		selfURL := fmt.Sprintf("http://localhost:%d/api/v1/health", cfg.Server.Port)
-		ticker := time.NewTicker(15 * time.Minute)
+		const selfURL = "https://dataforge-etl-pipeline-engine.onrender.com/api/v1/health"
+		ticker := time.NewTicker(10 * time.Minute)
 		defer ticker.Stop()
 		// Initial ping after a short delay to let server start.
 		time.Sleep(5 * time.Second)
