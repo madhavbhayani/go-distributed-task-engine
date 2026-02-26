@@ -61,6 +61,20 @@ func isNullValue(val string) bool {
 	return cleanNullSentinels[strings.ToLower(strings.TrimSpace(val))]
 }
 
+// formatFillValueByType ensures a numeric fill value respects the column's
+// inferred data type.  For integer columns the value is rounded to the nearest
+// whole number; for floats it keeps up to 4 significant decimals.
+func formatFillValueByType(raw float64, inferredType string) string {
+	switch inferredType {
+	case "integer":
+		return strconv.FormatInt(int64(math.Round(raw)), 10)
+	default: // float, numeric_string, or unknown
+		s := fmt.Sprintf("%.4f", raw)
+		s = strings.TrimRight(strings.TrimRight(s, "0"), ".")
+		return s
+	}
+}
+
 func (e *Engine) executeETLClean(ctx context.Context, job *models.Job) (any, error) {
 	params, err := toETLCleanParams(job.Params)
 	if err != nil {
@@ -379,16 +393,15 @@ func (e *Engine) executeETLClean(ctx context.Context, job *models.Job) (any, err
 						if isNullValue(val) {
 							fillVal := rule.Params["fill_value"]
 							strategy := rule.Params["strategy"]
+							colType := rule.Params["inferred_type"] // e.g. "integer", "float", ...
 
 							// Smart fill based on strategy
 							if cfs, ok := fillStats[col]; ok {
 								switch strategy {
 								case "mean":
-									fillVal = fmt.Sprintf("%.4f", cfs.mean)
-									fillVal = strings.TrimRight(strings.TrimRight(fillVal, "0"), ".")
+									fillVal = formatFillValueByType(cfs.mean, colType)
 								case "median":
-									fillVal = fmt.Sprintf("%.4f", cfs.median)
-									fillVal = strings.TrimRight(strings.TrimRight(fillVal, "0"), ".")
+									fillVal = formatFillValueByType(cfs.median, colType)
 								case "mode":
 									if cfs.mode != "" {
 										fillVal = cfs.mode
@@ -401,15 +414,13 @@ func (e *Engine) executeETLClean(ctx context.Context, job *models.Job) (any, err
 								switch params.NullHandling {
 								case "fill_mean":
 									if cfs, ok := fillStats[col]; ok {
-										fillVal = fmt.Sprintf("%.4f", cfs.mean)
-										fillVal = strings.TrimRight(strings.TrimRight(fillVal, "0"), ".")
+										fillVal = formatFillValueByType(cfs.mean, colType)
 									} else {
 										fillVal = "0"
 									}
 								case "fill_median":
 									if cfs, ok := fillStats[col]; ok {
-										fillVal = fmt.Sprintf("%.4f", cfs.median)
-										fillVal = strings.TrimRight(strings.TrimRight(fillVal, "0"), ".")
+										fillVal = formatFillValueByType(cfs.median, colType)
 									} else {
 										fillVal = "0"
 									}

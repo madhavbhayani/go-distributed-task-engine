@@ -138,6 +138,29 @@ func main() {
 		}
 	}()
 
+	// ── Self-Ping Keepalive (Render anti-sleep) ───
+	go func() {
+		selfURL := fmt.Sprintf("http://localhost:%d/api/v1/health", cfg.Server.Port)
+		ticker := time.NewTicker(15 * time.Minute)
+		defer ticker.Stop()
+		// Initial ping after a short delay to let server start.
+		time.Sleep(5 * time.Second)
+		for {
+			resp, err := http.Get(selfURL)
+			if err != nil {
+				logger.Warn("Keepalive ping failed", slog.String("error", err.Error()))
+			} else {
+				resp.Body.Close()
+				logger.Debug("Keepalive ping OK", slog.Int("status", resp.StatusCode))
+			}
+			select {
+			case <-ticker.C:
+			case <-done:
+				return
+			}
+		}
+	}()
+
 	logger.Info("Server is ready to accept connections")
 	logger.Info("API docs: http://" + addr + "/api/v1/health")
 

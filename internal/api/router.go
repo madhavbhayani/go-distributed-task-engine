@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/madhavbhayani/go-distributed-task-engine/internal/api/handlers"
 	"github.com/madhavbhayani/go-distributed-task-engine/internal/api/middleware"
 	"github.com/madhavbhayani/go-distributed-task-engine/internal/config"
@@ -13,7 +14,6 @@ import (
 	"github.com/madhavbhayani/go-distributed-task-engine/internal/monitor"
 	"github.com/madhavbhayani/go-distributed-task-engine/internal/store"
 	"github.com/madhavbhayani/go-distributed-task-engine/internal/worker"
-	"github.com/go-chi/chi/v5"
 )
 
 // ════════════════════════════════════════════════════════════════
@@ -43,16 +43,7 @@ func NewRouter(deps RouterDeps) http.Handler {
 	r.Use(middleware.Logger(deps.Logger))
 	r.Use(middleware.CORS)
 
-	// ── API Gateway: Auth (production only) ───────
-	r.Use(middleware.APIKeyAuth(middleware.AuthConfig{
-		Enabled: deps.Config.Auth.Enabled,
-		APIKeys: deps.Config.Auth.APIKeys,
-		SkipPaths: []string{
-			"/api/v1/health",
-			"/api/v1/ready",
-			"/api/v1/live",
-		},
-	}))
+	// Auth removed — public access for all users
 
 	// ── API Gateway: Rate Limiting (production only)
 	r.Use(middleware.RateLimit(middleware.RateLimitConfig{

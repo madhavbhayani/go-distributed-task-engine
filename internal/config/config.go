@@ -79,7 +79,7 @@ func Load() *Config {
 			APIKeys: parseAPIKeys(envStr("AUTH_API_KEYS", "")),
 		},
 		RateLimit: RateLimitConfig{
-			Enabled:        envStr("RATE_LIMIT_ENABLED", "false") == "true",
+			Enabled:        envStr("RATE_LIMIT_ENABLED", "true") == "true",
 			RequestsPerMin: envInt("RATE_LIMIT_RPM", 120),
 			BurstSize:      envInt("RATE_LIMIT_BURST", 30),
 		},

@@ -720,19 +720,19 @@ func buildRecommendations(ca *ColumnAnalysis) ([]CleanRecommendation, []Normaliz
 			clean = append(clean, CleanRecommendation{
 				Operation: "fill_null", Column: col,
 				Reason: reason,
-				Params: map[string]string{"fill_value": fillVal, "strategy": "mean"},
+				Params: map[string]string{"fill_value": fillVal, "strategy": "mean", "inferred_type": string(ca.InferredType)},
 			})
 		case TypeNumericString:
 			clean = append(clean, CleanRecommendation{
 				Operation: "fill_null", Column: col,
 				Reason: fmt.Sprintf("%d missing value(s) in numeric-string column — fill with 0", missing),
-				Params: map[string]string{"fill_value": "0"},
+				Params: map[string]string{"fill_value": "0", "inferred_type": string(ca.InferredType)},
 			})
 		case TypeBoolean:
 			clean = append(clean, CleanRecommendation{
 				Operation: "fill_null", Column: col,
 				Reason: fmt.Sprintf("%d missing value(s) in boolean column — fill with false", missing),
-				Params: map[string]string{"fill_value": "false"},
+				Params: map[string]string{"fill_value": "false", "inferred_type": string(ca.InferredType)},
 			})
 		case TypeCategorical:
 			// For categorical: fill with mode (most common value)
@@ -745,7 +745,7 @@ func buildRecommendations(ca *ColumnAnalysis) ([]CleanRecommendation, []Normaliz
 			clean = append(clean, CleanRecommendation{
 				Operation: "fill_null", Column: col,
 				Reason: reason,
-				Params: map[string]string{"fill_value": fillVal, "strategy": "mode"},
+				Params: map[string]string{"fill_value": fillVal, "strategy": "mode", "inferred_type": string(ca.InferredType)},
 			})
 		default:
 			// Always fill — never auto-recommend dropping rows.
@@ -762,7 +762,7 @@ func buildRecommendations(ca *ColumnAnalysis) ([]CleanRecommendation, []Normaliz
 			clean = append(clean, CleanRecommendation{
 				Operation: "fill_null", Column: col,
 				Reason: reason,
-				Params: map[string]string{"fill_value": fillVal, "strategy": strategy},
+				Params: map[string]string{"fill_value": fillVal, "strategy": strategy, "inferred_type": string(ca.InferredType)},
 			})
 		}
 	}
@@ -811,60 +811,11 @@ func buildRecommendations(ca *ColumnAnalysis) ([]CleanRecommendation, []Normaliz
 	}
 
 	// ── Normalisation ─────────────────────────────────────────────
-	switch ca.InferredType {
-	case TypeInteger, TypeFloat:
-		norm = append(norm, NormalizeRecommendation{
-			Operation: "min_max_scale", Column: col,
-			Reason: "Numeric column — scale to [0,1] for ML compatibility",
-		})
-		if ca.StdDev != nil && ca.Mean != nil && *ca.StdDev > 0 {
-			norm = append(norm, NormalizeRecommendation{
-				Operation: "z_score", Column: col,
-				Reason: fmt.Sprintf("Numeric (mean=%.2f, stddev=%.2f) — z-score standardisation available", *ca.Mean, *ca.StdDev),
-			})
-		}
-	case TypeEmail:
-		norm = append(norm, NormalizeRecommendation{
-			Operation: "email_normalize", Column: col,
-			Reason: "Lowercase + trim email values",
-		})
-	case TypePhone:
-		norm = append(norm, NormalizeRecommendation{
-			Operation: "phone_format", Column: col,
-			Reason: "Standardise phone numbers to E.164 format",
-		})
-	case TypeDate, TypeDateTime:
-		norm = append(norm, NormalizeRecommendation{
-			Operation: "date_format", Column: col,
-			Reason: "Enforce consistent ISO 8601 date output",
-			Params: map[string]string{"target_format": "2006-01-02"},
-		})
-	case TypeCategorical:
-		// Auto-generate enum mapping from case-insensitive grouping
-		if ca.HasInconsistentCase || len(ca.CategoricalOutliers) > 0 {
-			norm = append(norm, NormalizeRecommendation{
-				Operation: "enum_map", Column: col,
-				Reason: fmt.Sprintf("Categorical column (%d unique values) — auto-standardize case & merge variants", ca.UniqueCount),
-				Params: map[string]string{"auto": "true"},
-			})
-		} else {
-			norm = append(norm, NormalizeRecommendation{
-				Operation: "enum_map", Column: col,
-				Reason: fmt.Sprintf("Categorical column (%d unique values) — auto-standardize values", ca.UniqueCount),
-				Params: map[string]string{"auto": "true"},
-			})
-		}
-	case TypeURL:
-		norm = append(norm, NormalizeRecommendation{
-			Operation: "url_normalize", Column: col,
-			Reason: "Lowercase scheme+host, strip trailing slashes",
-		})
-	case TypeNumericString:
-		norm = append(norm, NormalizeRecommendation{
-			Operation: "min_max_scale", Column: col,
-			Reason: "Numeric-string column — strip symbols first, then scale",
-		})
-	}
+	// Value-level transforms (z_score, min_max_scale, enum_map, etc.)
+	// are intentionally NOT recommended because they destructively
+	// replace original CSV values.  Only DB normalization (1NF/2NF/3NF)
+	// is offered via the Normalize step's DB-normalization panel.
+	_ = norm // keep the compiler happy
 
 	return clean, norm
 }
