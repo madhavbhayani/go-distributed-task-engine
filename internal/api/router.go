@@ -5,14 +5,14 @@ import (
 	"net/http"
 	"time"
 
-	"example.com/backend-job-processing-system/internal/api/handlers"
-	"example.com/backend-job-processing-system/internal/api/middleware"
-	"example.com/backend-job-processing-system/internal/config"
-	"example.com/backend-job-processing-system/internal/dataset"
-	"example.com/backend-job-processing-system/internal/dispatcher"
-	"example.com/backend-job-processing-system/internal/monitor"
-	"example.com/backend-job-processing-system/internal/store"
-	"example.com/backend-job-processing-system/internal/worker"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/api/handlers"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/api/middleware"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/config"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/dataset"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/dispatcher"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/monitor"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/store"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/worker"
 	"github.com/go-chi/chi/v5"
 )
 

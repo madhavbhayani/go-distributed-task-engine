@@ -8,9 +8,9 @@ import (
 	"sync/atomic"
 	"time"
 
-	"example.com/backend-job-processing-system/internal/models"
-	"example.com/backend-job-processing-system/internal/queue"
-	"example.com/backend-job-processing-system/internal/store"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/models"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/queue"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/store"
 )
 
 // ════════════════════════════════════════════════════════════════

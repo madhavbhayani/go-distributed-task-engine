@@ -10,15 +10,15 @@ import (
 	"syscall"
 	"time"
 
-	"example.com/backend-job-processing-system/internal/api"
-	"example.com/backend-job-processing-system/internal/config"
-	"example.com/backend-job-processing-system/internal/dataset"
-	"example.com/backend-job-processing-system/internal/dispatcher"
-	"example.com/backend-job-processing-system/internal/executor"
-	"example.com/backend-job-processing-system/internal/monitor"
-	"example.com/backend-job-processing-system/internal/queue"
-	"example.com/backend-job-processing-system/internal/store"
-	"example.com/backend-job-processing-system/internal/worker"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/api"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/config"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/dataset"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/dispatcher"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/executor"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/monitor"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/queue"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/store"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/worker"
 )
 
 // Build-time variables (set via -ldflags)

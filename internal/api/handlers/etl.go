@@ -5,10 +5,10 @@ import (
 	"log/slog"
 	"net/http"
 
-	"example.com/backend-job-processing-system/internal/dispatcher"
-	"example.com/backend-job-processing-system/internal/models"
-	"example.com/backend-job-processing-system/internal/store"
-	"example.com/backend-job-processing-system/internal/validator"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/dispatcher"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/models"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/store"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/validator"
 )
 
 // ════════════════════════════════════════════════════════════════

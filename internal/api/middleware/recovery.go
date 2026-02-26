@@ -7,7 +7,7 @@ import (
 	"runtime/debug"
 	"time"
 
-	"example.com/backend-job-processing-system/internal/models"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/models"
 )
 
 // Recovery recovers from panics, logs the stack trace, and returns a 500 JSON response.

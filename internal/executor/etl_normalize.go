@@ -13,8 +13,8 @@ import (
 	"time"
 	"unicode"
 
-	"example.com/backend-job-processing-system/internal/dataset"
-	"example.com/backend-job-processing-system/internal/models"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/dataset"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/models"
 )
 
 // ════════════════════════════════════════════════════════════════

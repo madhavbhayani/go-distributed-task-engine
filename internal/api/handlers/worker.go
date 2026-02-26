@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"strings"
 
-	"example.com/backend-job-processing-system/internal/dataset"
-	"example.com/backend-job-processing-system/internal/worker"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/dataset"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/worker"
 	"github.com/go-chi/chi/v5"
 )
 

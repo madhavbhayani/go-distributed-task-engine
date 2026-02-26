@@ -12,9 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"example.com/backend-job-processing-system/internal/analyzer"
-	"example.com/backend-job-processing-system/internal/dataset"
-	"example.com/backend-job-processing-system/internal/models"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/analyzer"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/dataset"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/models"
 )
 
 // ════════════════════════════════════════════════════════════════

@@ -1,6 +1,6 @@
 package models
 
-import "example.com/backend-job-processing-system/internal/analyzer"
+import "github.com/madhavbhayani/go-distributed-task-engine/internal/analyzer"
 
 // ════════════════════════════════════════════════════════════════
 //  ETL / Data Migration Task Parameters

@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"time"
 
-	"example.com/backend-job-processing-system/internal/dispatcher"
-	"example.com/backend-job-processing-system/internal/models"
-	"example.com/backend-job-processing-system/internal/monitor"
-	"example.com/backend-job-processing-system/internal/worker"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/dispatcher"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/models"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/monitor"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/worker"
 )
 
 // ════════════════════════════════════════════════════════════════

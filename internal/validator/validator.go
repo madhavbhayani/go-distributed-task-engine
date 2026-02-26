@@ -1,10 +1,10 @@
-﻿package validator
+package validator
 
 import (
 	"fmt"
 	"strings"
 
-	"example.com/backend-job-processing-system/internal/models"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/models"
 )
 
 // ValidationError collects field-level validation errors.
@@ -31,9 +31,9 @@ func (v *ValidationError) HasErrors() bool {
 	return len(v.Fields) > 0
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ──────────────────────────────────────────────
 // ETL Validation
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ──────────────────────────────────────────────
 
 // ValidateETLImportParams validates ETLImportParams.
 func ValidateETLImportParams(p *models.ETLImportParams) error {
@@ -204,9 +204,9 @@ func ValidateETLPipelineParams(p *models.ETLPipelineParams) error {
 	return nil
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ──────────────────────────────────────────────
 // Job Request Validation
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ──────────────────────────────────────────────
 
 // ValidateCreateJobRequest validates the common job wrapper.
 func ValidateCreateJobRequest(r *models.CreateJobRequest) error {

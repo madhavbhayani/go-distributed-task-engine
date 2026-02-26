@@ -5,7 +5,7 @@ import (
 	"sort"
 	"sync"
 
-	"example.com/backend-job-processing-system/internal/analyzer"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/analyzer"
 )
 
 // ════════════════════════════════════════════════════════════════

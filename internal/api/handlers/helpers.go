@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"example.com/backend-job-processing-system/internal/api/middleware"
-	"example.com/backend-job-processing-system/internal/models"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/api/middleware"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/models"
 	"github.com/google/uuid"
 )
 

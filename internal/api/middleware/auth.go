@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"example.com/backend-job-processing-system/internal/models"
+	"github.com/madhavbhayani/go-distributed-task-engine/internal/models"
 )
 
 // ════════════════════════════════════════════════════════════════
